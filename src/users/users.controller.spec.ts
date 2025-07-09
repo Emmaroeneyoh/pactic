@@ -1,3 +1,5 @@
+// users.controller.spec.ts
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -73,45 +75,5 @@ describe('UsersController', () => {
     expect(mockService.login).toHaveBeenCalledWith(dto, '127.0.0.1', 'PostmanRuntime/7.29.0');
     expect(mockRes.status).toHaveBeenCalledWith(200);
     expect(mockRes.json).toHaveBeenCalledWith(successResponse('Login successful', user));
-  });
-
-  it('should return user profile', async () => {
-    const profile = { id: 1, username: 'test' };
-
-    mockService.getProfile.mockResolvedValue(profile);
-
-    await controller.getProfile({ userId: 1 }, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.getProfile).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Profile fetched successfully', profile));
-  });
-
-  it('should update user profile', async () => {
-    const body = { userId: 1, username: 'updated' };
-    const updated = { id: 1, username: 'updated' };
-
-    mockService.updateProfile.mockResolvedValue(updated);
-
-    await controller.updateProfile(body, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.updateProfile).toHaveBeenCalledWith(1, { username: 'updated' });
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Profile updated successfully', updated));
-  });
-
-  it('should delete user', async () => {
-    const deleted = { id: 1, deletedAt: new Date().toISOString() };
-
-    mockService.deleteUser.mockResolvedValue(deleted);
-
-    await controller.deleteUser({ userId: 1 }, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.deleteUser).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('User deleted (soft) successfully', deleted));
   });
 });

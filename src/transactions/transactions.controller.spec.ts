@@ -1,89 +1,87 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { successResponse } from '../common/helpers/response';
-import * as validator from '../common/utils/validate-token-user';
 
 describe('TransactionsController', () => {
   let controller: TransactionsController;
-  let service: TransactionsService;
+  let transactionsService: TransactionsService;
 
-  const mockService = {
+  const mockTransactionsService = {
     getTransactionsForUser: jest.fn(),
     getUserNotifications: jest.fn(),
     getUserLoginLogs: jest.fn(),
   };
 
+  const mockUser = { id: 1 };
+
   const mockReq = {
-    user: { id: 1 },
+    user: mockUser,
   };
 
-  const mockRes = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
+  const mockRes = () => {
+    const res: any = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    return res;
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TransactionsController],
-      providers: [{ provide: TransactionsService, useValue: mockService }],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .compile();
+      providers: [
+        {
+          provide: TransactionsService,
+          useValue: mockTransactionsService,
+        },
+      ],
+    }).compile();
 
     controller = module.get<TransactionsController>(TransactionsController);
-    service = module.get<TransactionsService>(TransactionsService);
-
-    jest.spyOn(validator, 'validateTokenUser').mockImplementation(() => true);
+    transactionsService = module.get<TransactionsService>(TransactionsService);
   });
 
   afterEach(() => jest.clearAllMocks());
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  describe('getUserTransactions', () => {
+    it('should return user transactions', async () => {
+      const mockResult = { items: [], total: 0, page: 1, totalPages: 0 };
+      mockTransactionsService.getTransactionsForUser.mockResolvedValue(mockResult);
+
+      const res = mockRes();
+      await controller.getUserTransactions('1', '1', mockReq as any, res);
+
+      expect(mockTransactionsService.getTransactionsForUser).toHaveBeenCalledWith(1, 1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Transactions fetched successfully', mockResult));
+    });
   });
 
-  it('should get user transactions', async () => {
-    const body = { userId: 1 };
-    const transactions = [{ id: 101, amount: 500 }];
+  describe('getUserNotifications', () => {
+    it('should return user notifications', async () => {
+      const mockResult = { items: [], total: 0, page: 1, totalPages: 0 };
+      mockTransactionsService.getUserNotifications.mockResolvedValue(mockResult);
 
-    mockService.getTransactionsForUser.mockResolvedValue(transactions);
+      const res = mockRes();
+      await controller.getUserNotifications('1', '1', mockReq as any, res);
 
-    await controller.getUserTransactions(body, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.getTransactionsForUser).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Transactions fetched successfully', transactions));
+      expect(mockTransactionsService.getUserNotifications).toHaveBeenCalledWith(1, 1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Notifications fetched successfully', mockResult));
+    });
   });
 
-  it('should get user notifications', async () => {
-    const body = { userId: 1 };
-    const notifications = [{ id: 201, message: 'Fund received' }];
+  describe('getUserLoginLogs', () => {
+    it('should return user login logs', async () => {
+      const mockResult = { items: [], total: 0, page: 1, totalPages: 0 };
+      mockTransactionsService.getUserLoginLogs.mockResolvedValue(mockResult);
 
-    mockService.getUserNotifications.mockResolvedValue(notifications);
+      const res = mockRes();
+      await controller.getUserLoginLogs('1', '1', mockReq as any, res);
 
-    await controller.getUserNotifications(body, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.getUserNotifications).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Notifications fetched successfully', notifications));
-  });
-
-  it('should get user login logs', async () => {
-    const body = { userId: 1 };
-    const logs = [{ id: 301, ip: '127.0.0.1', userAgent: 'Postman' }];
-
-    mockService.getUserLoginLogs.mockResolvedValue(logs);
-
-    await controller.getUserLoginLogs(body, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.getUserLoginLogs).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Login logs fetched successfully', logs));
+      expect(mockTransactionsService.getUserLoginLogs).toHaveBeenCalledWith(1, 1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Login logs fetched successfully', mockResult));
+    });
   });
 });

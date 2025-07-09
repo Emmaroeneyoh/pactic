@@ -1,98 +1,142 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 💰 Wallet Service API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is a simple wallet service built using NestJS, Prisma, MySQL, Redis, and RabbitMQ. It supports user management , user wallet creation, funding, withdrawal, and transfers with features like concurrency control, idempotency, and asynchronous processing.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Setup Instructions
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
+### 1. Clone the Repository
 ```bash
-$ npm install
+git clone https://github.com/Emmaroeneyoh/pactic.git
+cd pactis
 ```
 
-## Compile and run the project
-
+### 2. Install Dependencies
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Environment Variables
+Create a `.env` file based on the example and configure your database, Redis, RabbitMQ, etc.
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+RABBITMQ_URL=amqp://localhost
+RABBITMQ_QUEUE=wallet_queue
+DATABASE_URL="mysql://root:123456@localhost:3306/pactic"
+RABBITMQ_URL=amqp://localhost
+JWT_SECRET=your_super_secret_key
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 4. Prisma Setup
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma generate
+npx prisma migrate dev --name init
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Run the Application
+```bash
+npm run start:dev
+```
 
-## Resources
+### 6. Run Tests
+```bash
+npm run test
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🛠️ Technologies Used
 
-## Support
+- **NestJS** – API framework
+- **Prisma** – ORM for MySQL
+- **MySQL** – Database
+- **Redis** – Caching and idempotency
+- **RabbitMQ** – Asynchronous processing
+- **Jest** – Unit and integration tests
+- **Postman** – API documentation
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
+## 🧠 Design Decisions
 
-## Stay in touch
+- **Optimistic Concurrency Control**  
+  Leveraged a `version` field in the `Wallet` table to implement optimistic locking. This ensures that concurrent deposits and withdrawals and transfers are safe, and conflicting operations are detected without relying on heavy database locks.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- **Idempotency Handling**  
+  Each transaction request includes a `txId`. This ID is cached in Redis and checked before processing to ensure that repeated requests  do not result in duplicate operations.
 
-## License
+- **Deadlock Prevention**  
+  - In fund transfers, wallets are always locked in a consistent order (e.g., by ascending wallet ID) to avoid circular waits.  
+  - Combined with optimistic locking, this reduces the risk of deadlocks during concurrent operations.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- **Atomic Transfers**  
+  Transfers are executed within database transactions to guarantee atomicity—either both the debit and credit occur, or none at all. The rollback mechanism ensures consistency in case of failure.
+
+- **Message Queue Integration (RabbitMQ)**  
+  - Withdrawals and transfers are processed asynchronously via RabbitMQ queues.  
+  - Retry logic is implemented for transient failures, and transaction statuses are updated accordingly.
+
+- **Caching with Redis**  
+  - Frequently accessed data such as wallet balances and paginated transaction history are cached.  
+  - Cache invalidation is performed immediately after changes to ensure consistency between the cache and database.
+
+- **Soft Deletion Strategy**  
+  Used a `deletedAt` timestamp to implement soft deletes for extensibility and auditability, especially for users and wallets.
+
+- **Separation of Concerns**  
+  - Modular architecture following NestJS best practices.  
+  - Clear separation across domains (e.g., users, wallets, transactions, queues, cache), making the codebase maintainable and scalable.
+
+- **Low Latency Optimization**  
+  - Lightweight DTOs and minimal payloads for faster API response.  
+  - Batched database reads for paginated endpoints to minimize I/O.
+
+- **Scalability Considerations**  
+  - Stateless endpoints with Redis-based shared cache.  
+  - Async queue processing offloads heavy transaction logic from the HTTP layer.
+
+- **Auditability**  
+  All transactions are recorded with status tracking, timestamps, and failure metadata, allowing replay or inspection when needed.
+
+
+---
+
+## ✅ API Documentation
+
+### Postman Collection
+Download: https://documenter.getpostman.com/view/19729145/2sB34eJMzb
+---
+
+## 🧪 Testing
+
+- Jest used for unit and integration tests.
+
+---
+
+## 📁 Database Schema
+
+See the `prisma/schema.prisma` file. Includes models for:
+
+- `User`
+- `Wallet`
+- `Transaction`
+- `TransactionRequest`
+- `WalletRequest`
+- `Notification`
+- `LoginLog`
+
+Indexes & constraints:
+- Unique constraint on `wallet(userId, currency)`
+- Unique `txId` for idempotency
+- Indexed foreign keys
+
+---
+
+## 👨‍💻 Author
+
+- **Name**: Emmanuel Eneyoh
+- **Role**: Backend Developer
+
+---

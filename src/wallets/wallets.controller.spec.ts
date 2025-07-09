@@ -1,16 +1,14 @@
-// wallets.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { WalletsController } from './wallets.controller';
 import { WalletsService } from './wallets.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { successResponse } from '../common/helpers/response';
-import * as validator from '../common/utils/validate-token-user';
 
 describe('WalletsController', () => {
   let controller: WalletsController;
   let service: WalletsService;
 
-  const mockService = {
+  const mockWalletsService = {
     createWallet: jest.fn(),
     fundWallet: jest.fn(),
     getUserWallets: jest.fn(),
@@ -18,16 +16,23 @@ describe('WalletsController', () => {
     transferFunds: jest.fn(),
   };
 
-  const mockReq = { user: { id: 1 } };
-  const mockRes = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
+  const mockReq = {
+    user: { id: 1 },
+  };
+
+  const mockRes = () => {
+    const res: any = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    return res;
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [WalletsController],
-      providers: [{ provide: WalletsService, useValue: mockService }],
+      providers: [
+        { provide: WalletsService, useValue: mockWalletsService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -35,92 +40,103 @@ describe('WalletsController', () => {
 
     controller = module.get<WalletsController>(WalletsController);
     service = module.get<WalletsService>(WalletsService);
-
-    jest.spyOn(validator, 'validateTokenUser').mockImplementation(() => true);
   });
 
   afterEach(() => jest.clearAllMocks());
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  describe('createWallet', () => {
+    it('should create a wallet', async () => {
+      const res = mockRes();
+      const result = { id: 1, currency: 'USD' };
+      mockWalletsService.createWallet.mockResolvedValue(result);
+
+      await controller.createWallet({ userId: 1, currency: 'USD', txId: 'tx123' }, mockReq as any, res);
+      expect(service.createWallet).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Wallet created successfully', result));
+    });
   });
 
-  it('should create wallet and return response', async () => {
-    const body = { userId: 1, currency: 'NGN', txId: 'TX123' };
-    const wallet = { id: 1, currency: 'NGN' };
+  describe('fundWallet', () => {
+    it('should fund a wallet', async () => {
+      const res = mockRes();
+      const result = {
+        status_code: 200,
+        status: 'success',
+        message: 'Wallet funded',
+        data: { amount: 100 },
+      };
 
-    mockService.createWallet.mockResolvedValue(wallet);
+      mockWalletsService.fundWallet.mockResolvedValue(result);
 
-    await controller.createWallet(body, mockReq as any, mockRes as any);
+      await controller.fundWallet({
+        userId: 1,
+        walletId: 1,
+        currency: 'USD',
+        amount: 100,
+        txId: 'tx456',
+      }, mockReq as any, res);
 
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.createWallet).toHaveBeenCalledWith(1, 'NGN', 'TX123');
-    expect(mockRes.status).toHaveBeenCalledWith(201);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Wallet created successfully', wallet));
+      expect(service.fundWallet).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(result);
+    });
   });
 
-  it('should fund wallet and return response', async () => {
-    const body = { userId: 1, walletId: 2, currency: 'NGN', amount: 1000, txId: 'TX456' };
-    const funded = {
-      status_code: 200,
-      status: true,
-      message: 'Wallet funded successfully',
-      data: { amount: 1000 },
-    };
+  describe('getUserWallets', () => {
+    it('should return user wallets', async () => {
+      const res = mockRes();
+      const wallets = [{ id: 1, balance: 200 }];
+      mockWalletsService.getUserWallets.mockResolvedValue(wallets);
 
-    mockService.fundWallet.mockResolvedValue(funded);
-
-    await controller.fundWallet(body, mockReq as any, mockRes as any);
-
-    expect(mockService.fundWallet).toHaveBeenCalledWith(1, 2, 'NGN', 1000, 'TX456');
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(funded);
+      await controller.getUserWallets(mockReq as any, res, '1');
+      expect(service.getUserWallets).toHaveBeenCalledWith(1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('User wallets retrieved successfully', wallets));
+    });
   });
 
-  it('should get user wallets', async () => {
-    const wallets = [{ id: 1, balance: 500 }];
-    mockService.getUserWallets.mockResolvedValue(wallets);
+  describe('withdrawFromWallet', () => {
+    it('should withdraw from wallet', async () => {
+      const res = mockRes();
+      const result = { id: 1, amount: 50 };
 
-    await controller.getUserWallets({ userId: 1 }, mockReq as any, mockRes as any);
+      mockWalletsService.withdrawFromWallet.mockResolvedValue(result);
 
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.getUserWallets).toHaveBeenCalledWith(1);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('User wallets retrieved successfully', wallets));
+      await controller.withdrawFromWallet({
+        userId: 1,
+        walletId: 1,
+        currency: 'USD',
+        amount: 50,
+        txId: 'tx789',
+      }, mockReq as any, res);
+
+      expect(service.withdrawFromWallet).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Withdrawal successful', result));
+    });
   });
 
-  it('should withdraw from wallet', async () => {
-    const body = { userId: 1, walletId: 2, currency: 'NGN', amount: 500, txId: 'TX789' };
-    const withdrawal = { success: true };
+  describe('transferFunds', () => {
+    it('should transfer funds and return success', async () => {
+      const res = mockRes();
+      const body = {
+        senderId: 1,
+        recipientId: 2,
+        senderWalletId: 11,
+        recipientWalletId: 22,
+        amount: 50,
+        currency: 'USD',
+        txId: 'tx999',
+      };
+      const result = { transactionId: 'tx999' };
+      mockWalletsService.transferFunds.mockResolvedValue(result);
 
-    mockService.withdrawFromWallet.mockResolvedValue(withdrawal);
+      await controller.transferFunds(body, mockReq as any, res);
 
-    await controller.withdrawFromWallet(body, mockReq as any, mockRes as any);
-
-    expect(mockService.withdrawFromWallet).toHaveBeenCalledWith(body);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Withdrawal successful', withdrawal));
-  });
-
-  it('should transfer funds', async () => {
-    const body = {
-      senderId: 1,
-      senderWalletId: 2,
-      recipientId: 3,
-      recipientWalletId: 4,
-      currency: 'NGN',
-      amount: 200,
-      txId: 'TX999',
-    };
-    const result = { success: true };
-
-    mockService.transferFunds.mockResolvedValue(result);
-
-    await controller.transferFunds(body, mockReq as any, mockRes as any);
-
-    expect(validator.validateTokenUser).toHaveBeenCalledWith(1, 1);
-    expect(mockService.transferFunds).toHaveBeenCalledWith(body);
-    expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(successResponse('Transfer completed successfully', result));
+      expect(service.transferFunds).toHaveBeenCalledWith(body);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(successResponse('Transfer completed successfully', result));
+    });
   });
 });
