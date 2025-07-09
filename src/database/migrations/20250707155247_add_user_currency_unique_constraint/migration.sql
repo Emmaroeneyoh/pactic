@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `wallet` ADD COLUMN `version` INTEGER NOT NULL DEFAULT 0;

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `transaction` ADD COLUMN `fee` DECIMAL(20, 4) NOT NULL DEFAULT 0.0000;

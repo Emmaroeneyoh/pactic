@@ -1,0 +1,100 @@
+// Prisma Client Generator
+generator client {
+  provider = "prisma-client-js"
+}
+
+// MySQL datasource config (URL from environment)
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int             @id @default(autoincrement()) // Primary key
+  email         String          @unique                      // Unique constraint for user login
+  username      String
+  password      String
+  wallets       Wallet[]        // One-to-many relationship: one user has many wallets
+  transactions  Transaction[]   @relation("UserTransactions") // Links to all user-initiated transactions
+  notifications Notification[]  // User can have multiple notifications
+  createdAt     DateTime        @default(now())              // Created timestamp
+  updatedAt     DateTime        @updatedAt                   // Updated timestamp
+  deletedAt     DateTime?       // Nullable for soft deletes
+}
+
+model Wallet {
+  id            Int             @id @default(autoincrement()) // Primary key
+  user          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  balance       Decimal         @default(0.00) @db.Decimal(20, 4) // High-precision decimal
+  currency      String          @default("NGN")                   // NGN as default
+  version       Int             @default(0)                       // For optimistic locking / concurrency control
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deletedAt     DateTime?       // Soft delete
+  transactions  Transaction[]   @relation("WalletTransactions")  // Transactions related to this wallet
+
+  @@unique([userId, currency]) // Ensures one wallet per user per currency
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement()) // Primary key
+  wallet      Wallet    @relation("WalletTransactions", fields: [walletId], references: [id])
+  walletId    Int
+  user        User      @relation("UserTransactions", fields: [userId], references: [id])
+  userId      Int
+  type        TransactionType // Enum: DEPOSIT | WITHDRAWAL | TRANSFER
+  amount      Decimal   @db.Decimal(20, 4)
+  fee         Decimal   @default(0.0000) @db.Decimal(20, 4)
+  status      String
+  reference   String    @unique            // Ensures idempotency
+  metadata    Json?                         // Optional for additional details
+  createdAt   DateTime  @default(now())
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+}
+
+model LoginLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     // Optional (in case user was deleted or not found)
+  ipAddress  String?
+  userAgent  String?
+  location   String?
+  loggedInAt DateTime @default(now()) // Timestamp for login tracking
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  title      String
+  body       String
+  read       Boolean  @default(false)
+  type       String   // e.g., SYSTEM, ALERT, INFO
+  createdAt  DateTime @default(now())
+}
+
+model WalletRequest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  currency  String   // e.g., "NGN", "USD"
+  txId      String   @unique // Idempotency key for wallet creation
+  status    String   @default("pending") // or "success", "failed"
+  createdAt DateTime @default(now())
+}
+
+model TransactionRequest {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  walletId  Int
+  type      TransactionType
+  amount    Decimal   @db.Decimal(20, 4)
+  txId      String    @unique // Idempotency key for transaction
+  status    String    @default("pending")
+  metadata  Json?
+  createdAt DateTime  @default(now())
+}
